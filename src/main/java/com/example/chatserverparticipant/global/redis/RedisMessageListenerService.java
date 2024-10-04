@@ -42,8 +42,8 @@ public class RedisMessageListenerService implements MessageListener {
                 try {
                     // 이벤트 타입 및 ID를 명시적으로 설정
                     emitter.send(SseEmitter.event()
-                            .id(channel) // 이벤트 ID 설정
-                            .name("userReadUpdate") // 이벤트 타입 설정
+                            .id(channel.replaceFirst("chat_", "")) // 이벤트 ID 설정
+//                            .name("onMessage") // 이벤트 타입 설정(리액트랑 동일하게 맞춰야 함)
                             .data(dto)); // SSE Emitter로 데이터 전송
                 } catch (IOException e) {
                     log.error("SSE 전송 오류: {}", e.getMessage());

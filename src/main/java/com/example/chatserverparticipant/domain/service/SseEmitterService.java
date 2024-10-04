@@ -22,7 +22,10 @@ public class SseEmitterService {
     private final RedisTemplate<String, Boolean> participatedTemplate;
 
     public SseEmitter subscribe(String memberKey, List<UserReadDTO> data) {
-        SseEmitter sseEmitter = new SseEmitter(30_000L); // emitter 생성
+        /**
+         * 타임아웃 내에 데이터 입력이 없을 때를 대비한 로직 필요
+         */
+        SseEmitter sseEmitter = new SseEmitter(30_000L); // emitter 생성 -> 이 타임아웃 내에 데이터 입력이 없으면 종료해버리는듯?
         sseEmitterRepository.save(memberKey, sseEmitter);
 
         // emitter handling
@@ -31,6 +34,7 @@ public class SseEmitterService {
         sseEmitter.onCompletion(() -> sseEmitterRepository.deleteById(memberKey));
 
         // dummy data 전송
+        log.info("더미데이터 저장, 구독 시점");
         send(data, memberKey, sseEmitter);
         return sseEmitter;
     }
