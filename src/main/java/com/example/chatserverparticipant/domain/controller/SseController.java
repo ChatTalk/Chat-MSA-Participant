@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import reactor.core.publisher.Flux;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j(topic = "SSE_Controller")
@@ -27,7 +24,7 @@ public class SseController {
 
     @GetMapping(value = "/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@PathVariable String chatId) {
-        List<UserReadDTO> dummyData = Collections.emptyList(); // 초기 데이터로 빈 배열(503 방지)
+        List<UserReadDTO> dummyData = sseEmitterService.getInitialData(chatId); // 초기 데이터로 빈 배열(503 방지)
         return sseEmitterService.subscribe(chatId, dummyData);
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
@@ -61,6 +62,12 @@ public class RedisConfig {
         return getStringStringRedisTemplate(redisConnectionFactory);
     }
 
+    // 채팅창의 접속자 인원 관리(초기 데이터용)
+    @Bean(name = "participatedTemplate")
+    public RedisTemplate<String, Boolean> participatedTemplate(RedisConnectionFactory redisConnectionFactory) {
+        return getStringBooleanTemplate(redisConnectionFactory);
+    }
+
     private RedisTemplate<String, String> getStringStringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
@@ -70,6 +77,22 @@ public class RedisConfig {
 
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+
+        return redisTemplate;
+    }
+
+    private RedisTemplate<String, Boolean> getStringBooleanTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, Boolean> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+        // 키와 해시 키는 String으로 설정
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+
+        // 해시 값은 Boolean으로 설정
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class));
+        // 값을 Boolean으로 설정
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class));
 
         return redisTemplate;
     }

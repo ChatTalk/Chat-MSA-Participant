@@ -4,12 +4,14 @@ import com.example.chatserverparticipant.domain.dto.UserReadDTO;
 import com.example.chatserverparticipant.domain.repository.SseEmitterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j(topic = "SSE_Service")
 @Service
@@ -17,6 +19,7 @@ import java.util.List;
 public class SseEmitterService {
 
     private final SseEmitterRepository sseEmitterRepository;
+    private final RedisTemplate<String, Boolean> participatedTemplate;
 
     public SseEmitter subscribe(String memberKey, List<UserReadDTO> data) {
         SseEmitter sseEmitter = new SseEmitter(30_000L); // emitter 생성
@@ -45,4 +48,13 @@ public class SseEmitterService {
         }
     }
 
+    public List<UserReadDTO> getInitialData(String chatId) {
+        Map<Object, Object> entries =
+                participatedTemplate.opsForHash().entries("PARTICIPATED:" + chatId);
+
+        // UserReadDTO 리스트 생성 및 초기 데이터 활용
+        return entries.entrySet().stream()
+                .map(e -> new UserReadDTO((String) e.getKey(), (Boolean) e.getValue()))
+                .toList();
+    }
 }
