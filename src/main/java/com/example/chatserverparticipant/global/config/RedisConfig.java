@@ -1,40 +1,43 @@
 package com.example.chatserverparticipant.global.config;
 
+import com.example.chatserverparticipant.global.redis.RedisMessageListenerService;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
 
 @Configuration
-@EnableAutoConfiguration(exclude={RedisAutoConfiguration.class, RedisReactiveAutoConfiguration.class}) // 자동 생성 설정과 커스텀 설정 충돌 방지
-public class ReactiveRedisConfig {
+@RequiredArgsConstructor
+@EnableAutoConfiguration
+public class RedisConfig {
 
     @Value("${spring.data.redis.host}")
     private String host;
+
     @Value("${spring.data.redis.port}")
     private int port;
+
     @Value("${spring.data.redis.password}")
     private String password;
 
+    public final RedisMessageListenerService redisMessageListenerService;
+
     @Bean
-    // Lettuce는 ReactiveRedisConnectionFactory의 구현체 중 일부
-    public ReactiveRedisConnectionFactory connectionFactory() {
+    public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisConfiguration = new RedisStandaloneConfiguration();
         redisConfiguration.setHostName(host);
         redisConfiguration.setPort(port);
@@ -53,24 +56,36 @@ public class ReactiveRedisConfig {
         return new LettuceConnectionFactory(redisConfiguration, lettuceClientConfiguration);
     }
 
-    @Bean(name = "reactiveRedisTemplate")
-    public ReactiveRedisTemplate<String, String> reactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory) {
-        Jackson2JsonRedisSerializer<String> serializer = new Jackson2JsonRedisSerializer<>(String.class);
-        RedisSerializationContext.RedisSerializationContextBuilder<String, String> builder
-                = RedisSerializationContext.newSerializationContext(new StringRedisSerializer());
+    @Bean(name = "pubSubTemplate")
+    public RedisTemplate<String, String> pubSubTemplate(RedisConnectionFactory redisConnectionFactory) {
+        return getStringStringRedisTemplate(redisConnectionFactory);
+    }
 
-        RedisSerializationContext<String, String> context = builder.value(serializer)
-                .hashValue(serializer)
-                .hashKey(serializer)
-                .build();
+    private RedisTemplate<String, String> getStringStringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
 
-        return new ReactiveRedisTemplate<>(connectionFactory, context);
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+
+        return redisTemplate;
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory) {
+    public MessageListenerAdapter messageListenerAdapter() {
+        return new MessageListenerAdapter(redisMessageListenerService);
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            RedisConnectionFactory redisConnectionFactory
+    ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory);
+        container.addMessageListener(redisMessageListenerService, new PatternTopic("*"));
         return container;
     }
 }
