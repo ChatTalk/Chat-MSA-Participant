@@ -41,6 +41,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // redisson
+    implementation 'org.redisson:redisson-spring-boot-starter:3.28.0'
 }
 
 dependencyManagement {
