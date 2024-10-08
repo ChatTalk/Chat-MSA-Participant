@@ -2,6 +2,7 @@ package com.example.chatserverparticipant.domain.service;
 
 import com.example.chatserverparticipant.domain.dto.UserReadDTO;
 import com.example.chatserverparticipant.domain.repository.SseEmitterRepository;
+import com.example.chatserverparticipant.global.redis.RedisSubscribeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,13 +20,17 @@ import java.util.Map;
 public class SseEmitterService {
 
     private final SseEmitterRepository sseEmitterRepository;
+    private final RedisSubscribeService redisSubscribeService;
     private final RedisTemplate<String, Boolean> participatedTemplate;
 
-    public SseEmitter subscribe(String memberKey, List<UserReadDTO> data) {
+    public SseEmitter subscribe(String memberKey) {
+        redisSubscribeService.subscribe("chat_" + memberKey);
+        List<UserReadDTO> data = this.getInitialData(memberKey);
+
         /**
          * 타임아웃 내에 데이터 입력이 없을 때를 대비한 로직 필요
          */
-        SseEmitter sseEmitter = new SseEmitter(30_000L); // emitter 생성 -> 이 타임아웃 내에 데이터 입력이 없으면 종료해버리는듯?
+        SseEmitter sseEmitter = new SseEmitter(3000_000L); // emitter 생성 -> 이 타임아웃 내에 데이터 입력이 없으면 종료해버리는듯?
         sseEmitterRepository.save(memberKey, sseEmitter);
 
         // emitter handling

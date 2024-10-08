@@ -34,7 +34,7 @@ public class RedisMessageListenerService implements MessageListener {
         try {
             // JSON 파싱
             List<UserReadDTO> dto = new ObjectMapper().readValue(body, new TypeReference<List<UserReadDTO>>() {});
-            log.info("파싱: {}", dto.toString());
+            log.info("파싱: {}", dto.stream().map(e -> e.getEmail() + ": " + e.getIsRead()).toList());
 
             // 해당 채팅방의 SSE Emitter 찾기
             Optional<SseEmitter> optionalEmitter = sseEmitterRepository.findById(channel);
@@ -47,7 +47,7 @@ public class RedisMessageListenerService implements MessageListener {
                             .data(dto)); // SSE Emitter로 데이터 전송
                 } catch (IOException e) {
                     log.error("SSE 전송 오류: {}", e.getMessage());
-                    sseEmitterRepository.deleteById(channel); // 오류 발생 시 emitter 제거
+//                    sseEmitterRepository.deleteById(channel); // 오류 발생 시 emitter 제거
                 } catch (IllegalStateException e) {
                     log.error("SSE 상태 오류: {}", e.getMessage());
                     sseEmitterRepository.deleteById(channel); // 상태 오류 발생 시 제거

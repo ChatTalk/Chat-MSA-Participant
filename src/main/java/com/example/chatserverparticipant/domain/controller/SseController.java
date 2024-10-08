@@ -23,8 +23,7 @@ public class SseController {
     private final SseEmitterService sseEmitterService;
 
     @GetMapping(value = "/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@PathVariable String chatId) {
-        List<UserReadDTO> dummyData = sseEmitterService.getInitialData(chatId); // 초기 데이터로 빈 배열(503 방지)
-        return sseEmitterService.subscribe(chatId, dummyData);
+    public SseEmitter subscribe(@PathVariable String chatId) { // 초기 데이터로 빈 배열(503 방지)
+        return sseEmitterService.subscribe(chatId);
     }
 }
