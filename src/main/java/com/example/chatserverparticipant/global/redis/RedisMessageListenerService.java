@@ -1,6 +1,7 @@
 package com.example.chatserverparticipant.global.redis;
 
 import com.example.chatserverparticipant.domain.dto.UserReadDTO;
+import com.example.chatserverparticipant.domain.service.EventQueueService;
 import com.example.chatserverparticipant.global.facade.DistributedLockFacade;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -19,7 +20,7 @@ import java.util.List;
 @Service
 public class RedisMessageListenerService implements MessageListener {
 
-    private final DistributedLockFacade distributedLockFacade;
+    private final EventQueueService eventQueueService;
     private final SimpMessageSendingOperations messagingTemplate;
 
     @Override
@@ -34,16 +35,19 @@ public class RedisMessageListenerService implements MessageListener {
 
         try {
             // JSON 파싱
-            List<UserReadDTO> dto = new ObjectMapper().readValue(body, new TypeReference<List<UserReadDTO>>() {});
-            log.info("파싱: {}", dto.stream().map(e -> e.getEmail() + ": " + e.getIsRead()).toList());
+            List<UserReadDTO> data = new ObjectMapper().readValue(body, new TypeReference<List<UserReadDTO>>() {});
+            log.info("파싱: {}", data.stream().map(e -> e.getEmail() + ": " + e.getIsRead()).toList());
 
-            if (distributedLockFacade.tryLock(id, 5, 60)) {
-                messagingTemplate.convertAndSend("/sub/participant/" + id, dto);
-                log.info("메시지 전송 완료: {}", id);
-                distributedLockFacade.unlock(id);
+            if (eventQueueService.isSubscriptionComplete(id)) {
+                // 구독 완료 -> 바로 전송
+                log.info("{}번 구독 확인, 송신", id);
+                messagingTemplate.convertAndSend("/sub/participant/" + id, data);
             } else {
-                log.warn("해당 구독 경로에 락이 설정되지 않아 메시지 전송을 중단: {}", id);
+                // 구독 미완료 -> 대기열에 저장
+                log.info("{}번 구독 미완료, 데이터 대기열에 저장: {}", id, data);
+                eventQueueService.enqueueMessage(id, data);
             }
+
         } catch (JsonProcessingException e) {
             log.error("메시지 파싱 오류: {}", e.getMessage());
         }
