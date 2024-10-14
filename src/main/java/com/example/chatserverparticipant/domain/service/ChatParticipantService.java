@@ -21,11 +21,14 @@ public class ChatParticipantService {
     public void service(ChatUserReadDTO chatUserReadDTO) {
         // 채팅방을 떠났는가?(구독 종료)
         if (chatUserReadDTO.leave()) {
+            log.info("채팅방 구독 종료");
             leave(chatUserReadDTO);
         } else {
             if (chatUserReadDTO.read()) {
+                log.info("채팅방에 접속");
                 read(chatUserReadDTO);
             } else {
+                log.info("채팅방 접속 종료");
                 exit(chatUserReadDTO);
             }
         }
@@ -38,12 +41,19 @@ public class ChatParticipantService {
 
         return participants.entrySet()
                 .stream()
-                .map(e -> new UserReadDTO(e.getKey(), e.getValue())).toList();
+                .map(e -> new UserReadDTO(
+                        e.getKey().replace("-dot-", "."),
+                        e.getValue()))
+                .toList();
     }
 
     // 채팅방 읽음
     private void read(ChatUserReadDTO chatUserReadDTO) {
+        log.info("디티오: {}", chatUserReadDTO);
+        log.info("채팅방 아이디: {}", chatUserReadDTO.chatId());
+
         ChatParticipant chatParticipant = findChatParticipant(chatUserReadDTO.chatId());
+        log.info("서비스 로직에서 채팅방 도큐먼트 찾기: {}", chatParticipant);
         chatParticipant.participant(chatUserReadDTO.email());
 
         chatParticipantRepository.save(chatParticipant);
@@ -66,6 +76,8 @@ public class ChatParticipantService {
     }
 
     private ChatParticipant findChatParticipant(String chatId) {
+        log.info("한번 다 찾아보자: {}", chatParticipantRepository.findAll());
+
         return chatParticipantRepository.findByChatId(chatId).orElseThrow(
                 () -> new IllegalArgumentException("Chat participant not found")
         );
