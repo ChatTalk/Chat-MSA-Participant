@@ -40,6 +40,7 @@ public class RedisMessageListenerService implements MessageListener {
             // JSON 파싱
             ChatUserReadDTO dto = new ObjectMapper().readValue(body, ChatUserReadDTO.class);
             log.info("레코드 파싱: {}", dto.toString());
+            chatParticipantService.service(dto); // 도큐먼트 업데이트 처리
 
             List<UserReadDTO> data = chatParticipantService.getParticipantsList(dto);
             log.info("파싱: {}", data.stream().map(e -> e.getEmail() + ": " + e.getIsRead()).toList());

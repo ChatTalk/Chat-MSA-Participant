@@ -39,7 +39,7 @@ public class ChatParticipant {
      * @param email
      * 채팅방 퇴장
      */
-    public void exit(String email) {
+    public void leave(String email) {
         this.participant.remove(email);
     }
 }
