@@ -58,7 +58,7 @@ public class ChatParticipantService {
     }
 
     private ChatParticipant findChatParticipant(String chatId) {
-        return chatParticipantRepository.findById(chatId).orElseThrow(
+        return chatParticipantRepository.findByChatId(chatId).orElseThrow(
                 () -> new IllegalArgumentException("Chat participant not found")
         );
     }
