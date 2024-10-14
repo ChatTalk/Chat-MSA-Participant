@@ -1,6 +1,8 @@
 package com.example.chatserverparticipant.global.redis;
 
+import com.example.chatserverparticipant.domain.dto.ChatUserReadDTO;
 import com.example.chatserverparticipant.domain.dto.UserReadDTO;
+import com.example.chatserverparticipant.domain.service.ChatParticipantService;
 import com.example.chatserverparticipant.domain.service.EventQueueService;
 import com.example.chatserverparticipant.global.facade.DistributedLockFacade;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,6 +23,8 @@ import java.util.List;
 public class RedisMessageListenerService implements MessageListener {
 
     private final EventQueueService eventQueueService;
+    private final ChatParticipantService chatParticipantService;
+
     private final SimpMessageSendingOperations messagingTemplate;
 
     @Override
@@ -35,6 +39,9 @@ public class RedisMessageListenerService implements MessageListener {
 
         try {
             // JSON 파싱
+            ChatUserReadDTO dto = new ObjectMapper().readValue(body, ChatUserReadDTO.class);
+            log.info("레코드 파싱: {}", dto.toString());
+
             List<UserReadDTO> data = new ObjectMapper().readValue(body, new TypeReference<List<UserReadDTO>>() {});
             log.info("파싱: {}", data.stream().map(e -> e.getEmail() + ": " + e.getIsRead()).toList());
 

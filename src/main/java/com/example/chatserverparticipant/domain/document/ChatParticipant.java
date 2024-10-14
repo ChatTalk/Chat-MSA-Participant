@@ -20,11 +20,10 @@ public class ChatParticipant {
     private Map<String, Boolean> participant;
 
     /**
-     * 생성자
      * @param email
-     * 처음 생성 당시에는 구독하면서 읽을 테니 true 처리
+     * 접속 처리
      */
-    public ChatParticipant(String email) {
+    public void participant(String email) {
         this.participant.put(email, true);
     }
 
