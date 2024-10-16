@@ -1,6 +1,8 @@
 package com.example.chatserverparticipant.global.redis;
 
+import com.example.chatserverparticipant.domain.dto.ChatUserReadDTO;
 import com.example.chatserverparticipant.domain.dto.UserReadDTO;
+import com.example.chatserverparticipant.domain.service.ChatParticipantService;
 import com.example.chatserverparticipant.domain.service.EventQueueService;
 import com.example.chatserverparticipant.global.facade.DistributedLockFacade;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,6 +23,8 @@ import java.util.List;
 public class RedisMessageListenerService implements MessageListener {
 
     private final EventQueueService eventQueueService;
+    private final ChatParticipantService chatParticipantService;
+
     private final SimpMessageSendingOperations messagingTemplate;
 
     @Override
@@ -31,11 +35,14 @@ public class RedisMessageListenerService implements MessageListener {
         String body = new String(message.getBody());
 
         log.info("채널 확인: {} // 파싱: {}", channel, id);
-        log.info("날 것 그대로의 메세지: " + body);
 
         try {
             // JSON 파싱
-            List<UserReadDTO> data = new ObjectMapper().readValue(body, new TypeReference<List<UserReadDTO>>() {});
+            ChatUserReadDTO dto = new ObjectMapper().readValue(body, ChatUserReadDTO.class);
+            log.info("레코드 파싱: {}", dto.toString());
+            chatParticipantService.service(dto); // 도큐먼트 업데이트 처리
+
+            List<UserReadDTO> data = chatParticipantService.getParticipantsList(dto);
             log.info("파싱: {}", data.stream().map(e -> e.getEmail() + ": " + e.getIsRead()).toList());
 
             if (eventQueueService.isSubscriptionComplete(id)) {

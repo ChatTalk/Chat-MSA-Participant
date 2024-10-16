@@ -1,5 +1,6 @@
 package com.example.chatserverparticipant.global.config;
 
+import com.example.chatserverparticipant.domain.dto.ChatUserReadDTO;
 import com.example.chatserverparticipant.global.redis.RedisMessageListenerService;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
@@ -58,31 +59,47 @@ public class RedisConfig {
     }
 
     @Bean(name = "pubSubTemplate")
-    public RedisTemplate<String, String> pubSubTemplate(RedisConnectionFactory redisConnectionFactory) {
-        return getStringStringRedisTemplate(redisConnectionFactory);
+    public RedisTemplate<String, ChatUserReadDTO> pubSubTemplate(RedisConnectionFactory redisConnectionFactory) {
+        return getStringChatUserReadDTOTemplate(redisConnectionFactory);
     }
 
-    // 채팅창의 접속자 인원 관리(초기 데이터용)
-    @Bean(name = "participatedTemplate")
-    public RedisTemplate<String, Boolean> participatedTemplate(RedisConnectionFactory redisConnectionFactory) {
-        return getStringBooleanTemplate(redisConnectionFactory);
-    }
+//    // 채팅창의 접속자 인원 관리(초기 데이터용)
+//    @Bean(name = "participatedTemplate")
+//    public RedisTemplate<String, Boolean> participatedTemplate(RedisConnectionFactory redisConnectionFactory) {
+//        return getStringBooleanTemplate(redisConnectionFactory);
+//    }
+//
+//    private RedisTemplate<String, String> getStringStringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+//        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+//        redisTemplate.setConnectionFactory(redisConnectionFactory);
+//
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setValueSerializer(new StringRedisSerializer());
+//
+//        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+//
+//        return redisTemplate;
+//    }
+//
+//    private RedisTemplate<String, Boolean> getStringBooleanTemplate(RedisConnectionFactory redisConnectionFactory) {
+//        RedisTemplate<String, Boolean> redisTemplate = new RedisTemplate<>();
+//        redisTemplate.setConnectionFactory(redisConnectionFactory);
+//
+//        // 키와 해시 키는 String으로 설정
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+//
+//        // 해시 값은 Boolean으로 설정
+//        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class));
+//        // 값을 Boolean으로 설정
+//        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class));
+//
+//        return redisTemplate;
+//    }
 
-    private RedisTemplate<String, String> getStringStringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
-
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
-
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
-
-        return redisTemplate;
-    }
-
-    private RedisTemplate<String, Boolean> getStringBooleanTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, Boolean> redisTemplate = new RedisTemplate<>();
+    private RedisTemplate<String, ChatUserReadDTO> getStringChatUserReadDTOTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, ChatUserReadDTO> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 
         // 키와 해시 키는 String으로 설정
@@ -90,9 +107,9 @@ public class RedisConfig {
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 
         // 해시 값은 Boolean으로 설정
-        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class));
+        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(ChatUserReadDTO.class));
         // 값을 Boolean으로 설정
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Boolean.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(ChatUserReadDTO.class));
 
         return redisTemplate;
     }
