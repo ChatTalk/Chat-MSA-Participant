@@ -82,9 +82,11 @@ public class ChatParticipantService {
         ChatParticipant chatParticipant = findChatParticipant(chatId);
         ParticipantInfoDTO participantInfoDTO = chatParticipant.getParticipant().get(email.replace(".", "-dot-"));
 
+        // 조회의 비정합성이 발생하는 건, 입장을 했다는 뜻
+        // 즉 메세지를 넘겨주지 않아도 되므로,
         if (participantInfoDTO == null) {
 //            throw new IllegalArgumentException("참여 정보가 조회되지 않음");
-            return LocalDateTime.now();
+            return LocalDateTime.MIN;
         }
 
         return participantInfoDTO.getExitTime();
