@@ -1,0 +1,3 @@
+type Query {
+    getExitTime(chatId: String!, email: String!): String!
+}

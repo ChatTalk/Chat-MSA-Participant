@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -76,8 +77,20 @@ public class ChatParticipantService {
         chatParticipantRepository.save(chatParticipant);
     }
 
+    // 특정 사용자의 특정 채팅방의 퇴장 시간 얻어오기
+    public LocalDateTime getExitTime(String chatId, String email) {
+        ChatParticipant chatParticipant = findChatParticipant(chatId);
+        ParticipantInfoDTO participantInfoDTO = chatParticipant.getParticipant().get(email.replace(".", "-dot-"));
+
+        if (participantInfoDTO == null) {
+            throw new IllegalArgumentException("참여 정보가 조회되지 않음");
+        }
+
+        return participantInfoDTO.getExitTime();
+    }
+
     private ChatParticipant findChatParticipant(String chatId) {
-        log.info("한번 다 찾아보자: {}", chatParticipantRepository.findAll());
+//        log.info("한번 다 찾아보자: {}", chatParticipantRepository.findAll());
 
         return chatParticipantRepository.findByChatId(chatId).orElseThrow(
                 () -> new IllegalArgumentException("Chat participant not found")

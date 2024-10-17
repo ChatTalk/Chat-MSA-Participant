@@ -29,7 +29,12 @@ public class ChatParticipant {
      */
     public void participant(String email) {
         ParticipantInfoDTO info = this.participant.get(email);
-        info.setIsAccessed(true);
+
+        if (info == null) {
+            info = new ParticipantInfoDTO();
+        } else {
+            info.setIsAccessed(true);
+        }
 
         this.participant.put(sanitizeEmail(email), info);
     }
@@ -39,7 +44,7 @@ public class ChatParticipant {
      * 접속만 끊기
      */
     public void nonParticipant(String email) {
-        ParticipantInfoDTO info = this.participant.get(email);
+        ParticipantInfoDTO info = this.participant.get(sanitizeEmail(email));
         info.setIsAccessed(false);
         info.setExitTime(LocalDateTime.now());
 
