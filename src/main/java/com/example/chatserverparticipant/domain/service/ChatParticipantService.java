@@ -83,7 +83,8 @@ public class ChatParticipantService {
         ParticipantInfoDTO participantInfoDTO = chatParticipant.getParticipant().get(email.replace(".", "-dot-"));
 
         if (participantInfoDTO == null) {
-            throw new IllegalArgumentException("참여 정보가 조회되지 않음");
+//            throw new IllegalArgumentException("참여 정보가 조회되지 않음");
+            return LocalDateTime.now();
         }
 
         return participantInfoDTO.getExitTime();
