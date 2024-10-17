@@ -1,11 +1,13 @@
 package com.example.chatserverparticipant.domain.document;
 
+import com.example.chatserverparticipant.domain.dto.ParticipantInfoDTO;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
@@ -19,14 +21,17 @@ public class ChatParticipant {
     @Indexed(unique = true)
     private String chatId;
 
-    private Map<String, Boolean> participant;
+    private Map<String, ParticipantInfoDTO> participant;
 
     /**
      * @param email
      * 접속 처리
      */
     public void participant(String email) {
-        this.participant.put(sanitizeEmail(email), true);
+        ParticipantInfoDTO info = this.participant.get(email);
+        info.setIsAccessed(true);
+
+        this.participant.put(sanitizeEmail(email), info);
     }
 
     /**
@@ -34,7 +39,11 @@ public class ChatParticipant {
      * 접속만 끊기
      */
     public void nonParticipant(String email) {
-        this.participant.put(sanitizeEmail(email), false);
+        ParticipantInfoDTO info = this.participant.get(email);
+        info.setIsAccessed(false);
+        info.setExitTime(LocalDateTime.now());
+
+        this.participant.put(sanitizeEmail(email), info);
     }
 
     /**
