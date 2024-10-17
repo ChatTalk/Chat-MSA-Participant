@@ -2,6 +2,7 @@ package com.example.chatserverparticipant.domain.service;
 
 import com.example.chatserverparticipant.domain.document.ChatParticipant;
 import com.example.chatserverparticipant.domain.dto.ChatUserReadDTO;
+import com.example.chatserverparticipant.domain.dto.ParticipantInfoDTO;
 import com.example.chatserverparticipant.domain.dto.UserReadDTO;
 import com.example.chatserverparticipant.domain.repository.ChatParticipantRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +38,13 @@ public class ChatParticipantService {
     // 채팅방 리스트 반환하기
     public List<UserReadDTO> getParticipantsList(ChatUserReadDTO chatUserReadDTO) {
         ChatParticipant chatParticipant = findChatParticipant(chatUserReadDTO.chatId());
-        Map<String, Boolean> participants = chatParticipant.getParticipant();
+        Map<String, ParticipantInfoDTO> participants = chatParticipant.getParticipant();
 
         return participants.entrySet()
                 .stream()
                 .map(e -> new UserReadDTO(
                         e.getKey().replace("-dot-", "."),
-                        e.getValue()))
+                        e.getValue().getIsAccessed()))
                 .toList();
     }
 
