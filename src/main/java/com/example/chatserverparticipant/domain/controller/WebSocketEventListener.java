@@ -1,7 +1,6 @@
 package com.example.chatserverparticipant.domain.controller;
 
 import com.example.chatserverparticipant.domain.service.EventQueueService;
-import com.example.chatserverparticipant.global.facade.DistributedLockFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
